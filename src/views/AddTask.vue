@@ -1,6 +1,8 @@
 <template>
     <div class="add-task-container">
         <h1>Añadir Tarea</h1>
+        
+        <!-- Grupo de entrada para agregar nueva tarea -->
         <div class="input-group">
             <input 
                 v-model="newTask" 
@@ -11,17 +13,19 @@
             <button @click="addTask" class="add-button">Añadir</button>
         </div>
 
+        <!-- Lista de tareas -->
         <div v-if="tasks.length > 0" class="task-list">
             <div v-for="task in tasks" :key="task.id" class="task-item">
                 <span :class="{ completed: task.completed }">{{ task.todo }}</span>
                 <div>
-                    <button @click="toggleTaskCompletion(task)">
+                    <button @click="toggleTaskCompletion(task)" class="toggle-button">
                         {{ task.completed ? 'Desmarcar' : 'Completar' }}
                     </button>
-                    <button @click="deleteTask(task)">Eliminar</button>
+                    <button @click="deleteTask(task)" class="delete-button">Eliminar</button>
                 </div>
             </div>
         </div>
+        <p v-else class="no-tasks">No hay tareas. Añade una tarea para comenzar.</p>
     </div>
 </template>
 
@@ -34,6 +38,10 @@ export default {
             tasks: [],   // Lista de tareas locales
         };
     },
+    created() {
+        // Cargar las tareas desde localStorage al cargar el componente
+        this.loadTasks();
+    },
     methods: {
         addTask() {
             if (this.newTask.trim() === "") return;
@@ -41,22 +49,42 @@ export default {
             const newTask = {
                 todo: this.newTask,
                 completed: false,
-                id: Date.now(), 
+                id: Date.now(),
             };
 
             // Añadir la nueva tarea al inicio de la lista
             this.tasks.unshift(newTask);
             this.newTask = ""; // Limpiar el campo de entrada después de agregar
+
+            // Guardar las tareas actualizadas en localStorage
+            this.saveTasksToLocalStorage();
         },
 
         // Elimina una tarea específica de la lista
         deleteTask(task) {
             this.tasks = this.tasks.filter((t) => t.id !== task.id);
+            this.saveTasksToLocalStorage();
         },
 
         // Cambia el estado de la tarea entre completada y no completada
         toggleTaskCompletion(task) {
             task.completed = !task.completed;
+            this.saveTasksToLocalStorage();
+        },
+
+        // Cargar tareas desde localStorage
+        loadTasks() {
+            const savedTasks = JSON.parse(localStorage.getItem('tasks'));
+            console.log('Tareas cargadas desde localStorage:', savedTasks); // Agregado para depurar
+            if (savedTasks) {
+                this.tasks = savedTasks;
+            }
+        },
+
+        // Guardar las tareas en localStorage
+        saveTasksToLocalStorage() {
+            console.log('Guardando tareas en localStorage:', this.tasks); // Agregado para depurar
+            localStorage.setItem('tasks', JSON.stringify(this.tasks));
         },
     },
 };
@@ -67,32 +95,38 @@ export default {
     padding: 20px;
     max-width: 400px;
     margin: 0 auto;
+    text-align: center;
 }
 
 .input-group {
     display: flex;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 .task-input {
     flex-grow: 1;
-    padding: 8px;
-    margin-right: 5px;
+    padding: 10px;
+    margin-right: 10px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
 .add-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
+    padding: 10px 15px;
     background-color: #007bff;
     color: white;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
+}
+
+.add-button:hover {
+    background-color: #0056b3;
 }
 
 .task-list {
     margin-top: 20px;
+    text-align: left;
 }
 
 .task-item {
@@ -106,5 +140,38 @@ export default {
 .completed {
     text-decoration: line-through;
     color: gray;
+}
+
+.toggle-button {
+    padding: 5px 10px;
+    margin-left: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.toggle-button:hover {
+    background-color: #0056b3;
+}
+
+.delete-button {
+    padding: 5px 10px;
+    margin-left: 5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+.no-tasks {
+    color: #888;
+    font-style: italic;
 }
 </style>
